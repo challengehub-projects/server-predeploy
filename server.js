@@ -16,5 +16,6 @@ app.get("/", (req, res) => {
 // Start the cron jobs immediately when the server starts
 initCronJobs();
 
-e.log(`Server running safely on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running safely on port ${PORT}`);
 });
