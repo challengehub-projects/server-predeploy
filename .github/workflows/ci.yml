@@ -1,0 +1,40 @@
+name: Production Crash Check
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  verify-deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Project Dependencies
+        run: npm install
+
+      - name: Run Jest Tests
+        run: npm test
+
+      - name: Production Boot Test (PM2)
+        run: |
+          npm install -g pm2
+          PORT=5000 pm2 start server.js --name temp-app
+          sleep 5
+          pm2 list
+          # This line fails the build if the app status is anything other than 'online'
+          if ! pm2 show temp-app | grep -q "status.*online"; then echo "App crashed on boot!"; exit 1; fi
+          pm2 delete temp-app
+
+      - name: Trigger Render Deploy Hook
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
