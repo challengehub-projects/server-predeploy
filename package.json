@@ -5,6 +5,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
+    "http": "node http.js",
+    "file": "node file.js",
     "test": "jest",
     "pre-deploy": "cross-env PORT=5000 pm2 start server.js --name temp-app && timeout /t 2 && pm2 delete temp-app"
   },
